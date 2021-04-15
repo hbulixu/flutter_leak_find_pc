@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'flutter_leak_detector.dart';
 import 'file_selector.dart';
+import 'my_code_view.dart';
 void main() {
   runApp(MyApp());
 }
@@ -72,8 +73,14 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             RaisedButton(
                 onPressed: (){
-                  String content = generate(this.dartContent,this.retainPathJson);
-                  saveFile(content, '');
+                  ReportLint reportLint = generate(this.dartContent,this.retainPathJson);
+                  // saveFile(content, '');
+                  Navigator.of(context).push(
+                      new PageRouteBuilder(
+                          pageBuilder: (BuildContext context, Animation<double> animation,
+                              Animation<double> secondaryAnimation){
+                            return new MyCodeView( fileContent: this.dartContent,reportLint: reportLint,);
+                      }));
                 },
                 child: const Text('开始检测',
                   style: TextStyle(

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/source/line_info.dart';
 
-import 'gen_leak_html.dart';
 
 
 class VariableDeclarationWrap{
@@ -20,8 +19,9 @@ class ReportNodeInfo{
   final int score;
   final int lineNum;
   final String tips;
-
-  ReportNodeInfo(this.score, this.lineNum, this.tips);
+  final int begin;
+  final int end;
+  ReportNodeInfo(this.score, this.lineNum, this.tips,this.begin,this.end);
 }
 
 class ReportLint{
@@ -125,7 +125,7 @@ _buildVariableReporter(AstNode container,VariableDeclarationWrap variable ){
 
   int lineNum = _getLineNum(variable.node);
   //在引用链中的变量标黄
-  reportLint.add(lineNum, ReportNodeInfo(1,lineNum,'in retainPath'));
+  reportLint.add(lineNum, ReportNodeInfo(1,lineNum,'in retainPath',variable.node.offset,variable.node.end));
 
   final containerNodes = _traverseNodesInDFS(container);
 
@@ -135,11 +135,11 @@ _buildVariableReporter(AstNode container,VariableDeclarationWrap variable ){
 
     int lineNum = _getLineNum(variable.node);
     //对widget引用标红
-    reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self'));
+    reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',variable.node.offset,variable.node.end));
 
     assigmentNodes.forEach((node) {
       int lineNum = _getLineNum(node);
-      reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self'));
+      reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',node.offset,node.end));
     });
   }
 
@@ -149,11 +149,11 @@ _buildVariableReporter(AstNode container,VariableDeclarationWrap variable ){
 
     int lineNum = _getLineNum(variable.node);
     //对widget引用标红
-    reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self'));
+    reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',variable.node.offset,variable.node.end));
 
     methodInvNodes.forEach((node) {
       int lineNum = _getLineNum(node);
-      reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self'));
+      reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',node.offset,node.end));
     });
   }
 
@@ -247,7 +247,7 @@ class LintVisitor extends GeneralizingAstVisitor<Map> {
   }
 }
 
-String generate(String content,String retainJson) {
+ReportLint generate(String content,String retainJson) {
   if (content.isEmpty) {
     stdout.writeln('No file found');
   } else {
@@ -264,13 +264,13 @@ String generate(String content,String retainJson) {
       fileLineInfo = parseResult.lineInfo;
       //遍历AST
       compilationUnit.accept(LintVisitor());
-      return genLeakHtml(reportLint,content);
-
+     // return genLeakHtml(reportLint,content);
+      return reportLint;
     } catch (e) {
       stdout.writeln('Parse file error: ${e.toString()}');
     }
   }
-  return '';
+  return null;
 }
 
 
