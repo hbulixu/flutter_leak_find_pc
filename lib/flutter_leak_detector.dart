@@ -5,8 +5,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/source/line_info.dart';
-
-
+import 'package:flutter_leak_find_pc/report/report_leak.dart';
 
 class VariableDeclarationWrap{
   final VariableDeclaration node;
@@ -15,41 +14,7 @@ class VariableDeclarationWrap{
   VariableDeclarationWrap(this.node, this.type);
 }
 
-class ReportNodeInfo{
-  final int score;
-  final int lineNum;
-  final String tips;
-  final int begin;
-  final int end;
-  ReportNodeInfo(this.score, this.lineNum, this.tips,this.begin,this.end);
-}
-
-class ReportLint{
-
-  Map <int,ReportNodeInfo> reportLineMap ={};
-
-  void add(int key,ReportNodeInfo newValue){
-
-    if(reportLineMap.containsKey(key)){
-
-      var oldValue =  reportLineMap[key];
-
-      if(newValue.score > oldValue.score){
-
-        reportLineMap.update(key, (value) => newValue);
-      }
-
-    }else{
-      reportLineMap.putIfAbsent(key, () => newValue);
-    }
-
-  }
-
-}
-
 LineInfo fileLineInfo;
-
-ReportLint reportLint = ReportLint();
 
 List retainClassList =[];
 
@@ -90,9 +55,7 @@ class VariableVisitor extends SimpleAstVisitor<Map> {
     TypeAnnotation type = node.variables.type;
 
     node.variables.variables.forEach((variableNode) {
-
       _buildVariableReporter(function, VariableDeclarationWrap(variableNode,type));
-
     });
 
     return super.visitVariableDeclarationStatement(node);
@@ -125,7 +88,7 @@ _buildVariableReporter(AstNode container,VariableDeclarationWrap variable ){
 
   int lineNum = _getLineNum(variable.node);
   //在引用链中的变量标黄
-  reportLint.add(lineNum, ReportNodeInfo(1,lineNum,'in retainPath',variable.node.offset,variable.node.end));
+  ReportLeak.add(lineNum, ReportNodeInfo(1,lineNum,'in retainPath',variable.node.offset,variable.node.end));
 
   final containerNodes = _traverseNodesInDFS(container);
 
@@ -135,11 +98,11 @@ _buildVariableReporter(AstNode container,VariableDeclarationWrap variable ){
 
     int lineNum = _getLineNum(variable.node);
     //对widget引用标红
-    reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',variable.node.offset,variable.node.end));
+    ReportLeak.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',variable.node.offset,variable.node.end));
 
     assigmentNodes.forEach((node) {
       int lineNum = _getLineNum(node);
-      reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',node.offset,node.end));
+      ReportLeak.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',node.offset,node.end));
     });
   }
 
@@ -149,11 +112,11 @@ _buildVariableReporter(AstNode container,VariableDeclarationWrap variable ){
 
     int lineNum = _getLineNum(variable.node);
     //对widget引用标红
-    reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',variable.node.offset,variable.node.end));
+    ReportLeak.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',variable.node.offset,variable.node.end));
 
     methodInvNodes.forEach((node) {
       int lineNum = _getLineNum(node);
-      reportLint.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',node.offset,node.end));
+      ReportLeak.add(lineNum, ReportNodeInfo(2,lineNum,'retain self',node.offset,node.end));
     });
   }
 
@@ -247,13 +210,13 @@ class LintVisitor extends GeneralizingAstVisitor<Map> {
   }
 }
 
-ReportLint generate(String content,String retainJson) {
+void generate(String content,String retainJson) {
   if (content.isEmpty) {
     stdout.writeln('No file found');
   } else {
     try {
       //初始化
-      reportLint = ReportLint();
+      ReportLeak.clean();
       retainClassList =[];
       List list = jsonDecode(retainJson);
       list.forEach((element) {
@@ -264,8 +227,6 @@ ReportLint generate(String content,String retainJson) {
       fileLineInfo = parseResult.lineInfo;
       //遍历AST
       compilationUnit.accept(LintVisitor());
-     // return genLeakHtml(reportLint,content);
-      return reportLint;
     } catch (e) {
       stdout.writeln('Parse file error: ${e.toString()}');
     }

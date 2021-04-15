@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import 'flutter_leak_detector.dart';
+import 'report/report_leak.dart';
 
 class SyntaxHighlighterStyle {
   SyntaxHighlighterStyle(
@@ -54,7 +55,7 @@ class SyntaxHighlighterStyle {
 
 abstract class SyntaxHighlighter {
   // ignore: one_member_abstracts
-  TextSpan format(String src,ReportLint reportLint);
+  TextSpan format(String src);
 }
 
 class DartSyntaxHighlighter extends SyntaxHighlighter {
@@ -134,16 +135,16 @@ class DartSyntaxHighlighter extends SyntaxHighlighter {
   List<_HighlightSpan> _spans;
 
   @override
-  TextSpan format(String src,ReportLint reportLint) {
+  TextSpan format(String src) {
     _src = src;
     _scanner = StringScanner(_src);
-
+    var reportLeak = ReportLeak.getInstance();
     if (_generateSpans()) {
       // Successfully parsed the code
       final List<TextSpan> formattedText = <TextSpan>[];
       int currentPosition = 0;
 
-      var keyList =  reportLint.reportLineMap.keys.toList()..sort();
+      var keyList =  reportLeak.reportLineMap.keys.toList()..sort();
       int reportBegin = 0;
       int reportEnd = 0;
       int reportLevel = 0;
@@ -162,7 +163,7 @@ class DartSyntaxHighlighter extends SyntaxHighlighter {
           }
           reportSpan = <TextSpan>[];
           if(reportCurrentKey < keyList.length){
-            ReportNodeInfo nodeInfo = reportLint.reportLineMap[keyList[reportCurrentKey]];
+            ReportNodeInfo nodeInfo = reportLeak.reportLineMap[keyList[reportCurrentKey]];
             reportBegin = nodeInfo.begin;
             reportEnd = nodeInfo.end;
             reportLevel = nodeInfo.score;

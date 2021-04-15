@@ -73,13 +73,13 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             RaisedButton(
                 onPressed: (){
-                  ReportLint reportLint = generate(this.dartContent,this.retainPathJson);
+                  generate(this.dartContent,this.retainPathJson);
                   // saveFile(content, '');
                   Navigator.of(context).push(
                       new PageRouteBuilder(
                           pageBuilder: (BuildContext context, Animation<double> animation,
                               Animation<double> secondaryAnimation){
-                            return new MyCodeView( fileContent: this.dartContent,reportLint: reportLint,);
+                            return new MyCodeView( fileContent: this.dartContent,finlePath: this.dartPath,);
                       }));
                 },
                 child: const Text('开始检测',

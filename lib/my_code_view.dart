@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import './syntax_highlighter.dart';
 import 'flutter_leak_detector.dart';
+import 'report/report_leak.dart';
 
 class MyCodeView extends StatefulWidget {
   final String fileContent;
-  final ReportLint reportLint;
-
-  MyCodeView({@required this.fileContent,this.reportLint});
+  final String finlePath;
+  MyCodeView({@required this.fileContent,this.finlePath});
 
   @override
   MyCodeViewState createState() {
@@ -40,7 +40,7 @@ class MyCodeViewState extends State<MyCodeView> {
                   text: TextSpan(
                     style: TextStyle(fontFamily: 'monospace', fontSize: 12.0),
                     children: <TextSpan>[
-                      DartSyntaxHighlighter(style).format(codeContent,widget.reportLint)
+                      DartSyntaxHighlighter(style).format(codeContent)
                     ],
                   ),
                 ),
@@ -75,7 +75,7 @@ class MyCodeViewState extends State<MyCodeView> {
 
       return Scaffold(
         appBar: AppBar(
-            title:Text('')
+            title:Text(widget.finlePath)
         ),
         body:  Padding(
           padding: EdgeInsets.all(4.0),
