@@ -3,10 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_leak_find_pc/report/report_leak.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import 'flutter_leak_detector.dart';
-import 'report/report_leak.dart';
 
 class SyntaxHighlighterStyle {
   SyntaxHighlighterStyle(

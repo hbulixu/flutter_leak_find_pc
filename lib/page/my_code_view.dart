@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import './syntax_highlighter.dart';
-import 'flutter_leak_detector.dart';
-import 'report/report_leak.dart';
+import '../utils/syntax_highlighter.dart';
+import '../flutter_leak_detector.dart';
+import '../report/report_leak.dart';
 
 class MyCodeView extends StatefulWidget {
   final String fileContent;
